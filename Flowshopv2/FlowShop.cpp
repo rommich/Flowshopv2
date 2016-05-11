@@ -6,22 +6,23 @@
 #define E (exp(1))
 FlowShop::FlowShop()
 {
-	Initialize();
 }
 
 void FlowShop::Initialize()
 {
 	int iTemp;
+
+	std::cout << "Wprowadz liczbe maszyn:" << std::endl;
+	std::cin >> iMachineNumber;
+	std::cout  << "Wprowadz liczbe zadan:" << std::endl;
+	std::cin >> iJobsNumber;
+
 	viJobs = new int*[iJobsNumber];
 	viMachines = new int*[iJobsNumber];
 	for (int i = 0; i < iJobsNumber; i++) {
 		viJobs[i] = new int[iMachineNumber];
 		viMachines[i] = new int[iMachineNumber];
 	}
-	std::cout << "Wprowadz liczbe maszyn:" << std::endl;
-	std::cin >> iMachineNumber;
-	std::cout  << "Wprowadz liczbe zadan:" << std::endl;
-	std::cin >> iJobsNumber;
 
 	for (int i = 0; i < iJobsNumber; i++) {
 		std::cout << "Wprowadz czasy dla zadania: " << i << " dla maszyny:"  << std::endl;

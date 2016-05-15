@@ -28,7 +28,7 @@ void FlowShop::Initialize()
 		std::cout << "Wprowadz czasy dla zadania: " << i << " dla maszyny:"  << std::endl;
 	
 		for (int j = 0; j < iMachineNumber; j++) {
-			std::cout << std::endl << j << ": ";
+			std::cout << j << ": ";
 			std::cin >> viJobs[i][j];
 		}
 	}
@@ -46,26 +46,27 @@ void FlowShop::Initialize()
 
 int FlowShop::GetExecutionTime()
 {
-	return viMachines[iJobsNumber-1][iMachineNumber-1];
+	return viMachines[iCurrentResult[iJobsNumber - 1]][iMachineNumber - 1];
 }
 
 void FlowShop::CalculateMachines()
 {
 	for (int i = 0; i < iJobsNumber; i++) {
+
 		for (int j = 0; j < iMachineNumber; j++) {
 			if (i == 0)
 				if (j == 0)
-					viMachines[i][j] = viJobs[i][j];
+					viMachines[iCurrentResult[i]][j] = viJobs[iCurrentResult[i]][j];
 				else
-					viMachines[i][j] = viMachines[i][j - 1] + viJobs[i][j];
+					viMachines[iCurrentResult[i]][j] = viMachines[iCurrentResult[i]][j - 1] + viJobs[iCurrentResult[i]][j];
 			else
 				if (j == 0)
-					viMachines[i][j] = viMachines[i - 1][j] + viJobs[i][j];
+					viMachines[iCurrentResult[i]][j] = viMachines[iCurrentResult[i - 1]][j] + viJobs[iCurrentResult[i]][j];
 				else
-					if (viMachines[i - 1][j] > viMachines[i][j - 1])
-						viMachines[i][j] = viMachines[i - 1][j] + viJobs[i][j];
+					if (viMachines[iCurrentResult[i - 1]][j] > viMachines[iCurrentResult[i]][j - 1])
+						viMachines[iCurrentResult[i]][j] = viMachines[iCurrentResult[i - 1]][j] + viJobs[iCurrentResult[i]][j];
 					else
-						viMachines[i][j] = viMachines[i][j - 1] + viJobs[i][j];
+						viMachines[iCurrentResult[i]][j] = viMachines[iCurrentResult[i]][j - 1] + viJobs[iCurrentResult[i]][j];
 		}
 	}
 }
@@ -115,10 +116,9 @@ int FlowShop::Execute()
 				iBestExecutionTime = GetExecutionTime();
 				PromoteResult(iCurrentResult);
 			}else if(!(std::pow(E, (GetExecutionTime() - iBestExecutionTime) / (-dT)) > dP0))
-				std::swap(iCurrentResult[iRand1], iCurrentResult[iRand2]);
-			
-			dT = dT * dAlpha;
+				std::swap(iCurrentResult[iRand1], iCurrentResult[iRand2]);			
 		}
+		dT = dT * dAlpha;
 	}
 	return 0;
 }
@@ -131,7 +131,39 @@ void FlowShop::Run()
 
 void FlowShop::Write()
 {
-	std::cout << iBestExecutionTime;
+	std::cout << std::endl << "Czas wykonania zadan: " << iBestExecutionTime << std::endl << "kolejnosc: " << std::endl;
+	for (int i = 0; i < iJobsNumber; i++)
+		std::cout << iBestResult[i] << " ";
+	std::cout << std::endl << std::endl;
+
+	for (int i = 0; i < iMachineNumber; i++) {
+		for (int j = 0; j < iJobsNumber; j++) {
+
+			if (i == 0)		//maszyna 0
+				for (int k = 0; k < viJobs[iBestResult[j]][i]; k++)
+					std::cout << iBestResult[j];
+			else			//maszyna != 0
+				if (j == 0) {		//zadanie 0
+					for (int k = 0; k < viMachines[iBestResult[j]][i-1]; k++)
+						std::cout << " ";
+					for (int k = 0; k < viJobs[iBestResult[j]][i]; k++)
+						std::cout << iBestResult[j];
+				}
+				else		//zadanie != 0
+					if (viMachines[iBestResult[j - 1]][i] > viMachines[iBestResult[j]][i - 1])
+						for (int k = 0; k < viJobs[iBestResult[j]][i]; k++)
+							std::cout << iBestResult[j];
+					else {
+						for (int k = 0; k < viMachines[iBestResult[j]][i - 1] - viMachines[iBestResult[j - 1]][i]; k++)
+							std::cout << " ";
+						for (int k = 0; k < viJobs[iBestResult[j]][i]; k++)
+							std::cout << iBestResult[j];
+					}
+
+		}
+		std::cout << std::endl;
+	}
+
 	system("pause");
 }
 

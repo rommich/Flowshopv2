@@ -23,6 +23,7 @@ public:
 	int GetExecutionTime();
 	void CalculateMachines();
 	void PromoteResult(int*);
+	void SetBestToCurrent(int*);
 	int Execute();
 	void Run();
 	void Write();

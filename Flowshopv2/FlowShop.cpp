@@ -77,6 +77,12 @@ void FlowShop::PromoteResult(int *iCurrent)
 		iBestResult[i] = iCurrent[i];
 }
 
+void FlowShop::SetBestToCurrent(int *iBest)
+{
+	for (int i = 0; i < iJobsNumber; i++)
+		iCurrentResult[i] = iBest[i];
+}
+
 int FlowShop::Execute()
 {
 	srand(time(NULL));
@@ -120,6 +126,8 @@ int FlowShop::Execute()
 		}
 		dT = dT * dAlpha;
 	}
+	SetBestToCurrent(iBestResult);
+	CalculateMachines();
 	return 0;
 }
 
@@ -145,7 +153,7 @@ void FlowShop::Write()
 			else			//maszyna != 0
 				if (j == 0) {		//zadanie 0
 					for (int k = 0; k < viMachines[iBestResult[j]][i-1]; k++)
-						std::cout << " ";
+						std::cout << "-";
 					for (int k = 0; k < viJobs[iBestResult[j]][i]; k++)
 						std::cout << iBestResult[j];
 				}
@@ -154,8 +162,8 @@ void FlowShop::Write()
 						for (int k = 0; k < viJobs[iBestResult[j]][i]; k++)
 							std::cout << iBestResult[j];
 					else {
-						for (int k = 0; k < viMachines[iBestResult[j]][i - 1] - viMachines[iBestResult[j - 1]][i]; k++)
-							std::cout << " ";
+						for (int k = 0; k < (viMachines[iBestResult[j]][i - 1] - viMachines[iBestResult[j - 1]][i]); k++)
+							std::cout << "-";
 						for (int k = 0; k < viJobs[iBestResult[j]][i]; k++)
 							std::cout << iBestResult[j];
 					}
@@ -166,7 +174,6 @@ void FlowShop::Write()
 
 	system("pause");
 }
-
 
 FlowShop::~FlowShop()
 {

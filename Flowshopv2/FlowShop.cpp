@@ -8,10 +8,34 @@ FlowShop::FlowShop()
 {
 }
 
+void FlowShop::Menu()
+{
+	int chose;
+	std::cout << ">>> FLOW SHOP <<< \n\n" << "1.Podaj dane recznie \n" << "2.Wylosuj dane \n"<< "0.Wyjscie \n";
+	std::cin >> chose;
+	switch (chose)
+	{
+	case 1:
+		system("cls");
+		Initialize();
+		Run();
+		break;
+	case 2:
+		system("cls");
+		getRandom();
+		Run();
+		break;
+	case 0:
+		exit(0);
+	default:
+		system("cls");
+		Menu();
+		break;
+	}
+}
+
 void FlowShop::Initialize()
 {
-	int iTemp;
-
 	std::cout << "Wprowadz liczbe maszyn:" << std::endl;
 	std::cin >> iMachineNumber;
 	std::cout  << "Wprowadz liczbe zadan:" << std::endl;
@@ -42,6 +66,37 @@ void FlowShop::Initialize()
 	iCurrentResult = new int[iJobsNumber];
 	iBestResult = new int[iJobsNumber];
 	iBestExecutionTime = INT_MAX;	
+}
+
+void FlowShop::getRandom()
+{
+	srand(time(NULL));
+	std::cout << "Wprowadz liczbe maszyn:" << std::endl;
+	std::cin >> iMachineNumber;
+	std::cout << "Wprowadz liczbe zadan:" << std::endl;
+	std::cin >> iJobsNumber;
+
+	viJobs = new int*[iJobsNumber];
+	viMachines = new int*[iJobsNumber];
+	for (int i = 0; i < iJobsNumber; i++) {
+		viJobs[i] = new int[iMachineNumber];
+		viMachines[i] = new int[iMachineNumber];
+	}
+	//losowanie
+	for (int i = 0; i < iJobsNumber; i++) 
+		for (int j = 0; j < iMachineNumber; j++) {
+			viJobs[i][j] = rand() %20 +1;
+		}
+	std::cout << "Wprowadz temperature poczatkowa:" << std::endl;
+	std::cin >> dT;
+	std::cout << "Wprowadz temperature minimalna:" << std::endl;
+	std::cin >> dMinT;
+	std::cout << "Wprowadz wspolczynnik schladzania:" << std::endl;
+	std::cin >> dAlpha;
+
+	iCurrentResult = new int[iJobsNumber];
+	iBestResult = new int[iJobsNumber];
+	iBestExecutionTime = INT_MAX;
 }
 
 int FlowShop::GetExecutionTime()
@@ -88,7 +143,7 @@ int FlowShop::Execute()
 	srand(time(NULL));
 	bool *used = new bool[iJobsNumber];
 	int iTmp;
-	int iExecutionTime, iRand1, iRand2;
+	int iRand1, iRand2;
 
 	for (int i = 0; i < iJobsNumber; i++) {
 		used[i] = false;
@@ -131,9 +186,54 @@ int FlowShop::Execute()
 	return 0;
 }
 
+void FlowShop::InitBrutForce()
+{
+	iCountVisited = 0;
+	delete iCurrentResult;
+	delete iBestResult;
+	iCurrentResult = new int[iJobsNumber];
+	iBestResult = new int[iJobsNumber];
+	iBestExecutionTime = INT_MAX;
+	visited = new bool[iJobsNumber];
+	for (int i = 0; i < iJobsNumber; i++)
+	{
+		visited[i] = false;
+	}
+	BrutForce(-1);
+	SetBestToCurrent(iBestResult);
+	CalculateMachines();
+}
+
+void FlowShop::BrutForce(int v)
+{
+	if (v == -1)
+		for (int i = 0; i < iJobsNumber; i++)
+			BrutForce(i);
+	else {
+		iCurrentResult[iCountVisited++] = v;
+		if (iCountVisited < iJobsNumber) {
+			visited[v] = true;
+			for (int u = 0; u < iJobsNumber; u++)
+				if (u != v && !visited[u])
+					BrutForce(u);
+			visited[v] = false;
+		}
+		else {
+			CalculateMachines();
+			if (GetExecutionTime() < iBestExecutionTime) {
+				iBestExecutionTime = GetExecutionTime();
+				PromoteResult(iCurrentResult);
+			}
+		}
+		iCountVisited--;
+	}
+}
+
 void FlowShop::Run()
 {
 	Execute();
+	Write();
+	InitBrutForce();
 	Write();
 }
 
@@ -145,6 +245,7 @@ void FlowShop::Write()
 	std::cout << std::endl << std::endl;
 
 	for (int i = 0; i < iMachineNumber; i++) {
+		std::cout << "m" << i << ") ";
 		for (int j = 0; j < iJobsNumber; j++) {
 
 			if (i == 0)		//maszyna 0

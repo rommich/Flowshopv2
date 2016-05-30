@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <string>
 
 class FlowShop
 {
@@ -29,11 +30,12 @@ public:
 	void CalculateMachines();
 	void PromoteResult(int*);
 	void SetBestToCurrent(int*);
-	int Execute();
+	int SimulatedAnnealing();
 	void InitBrutForce();
 	void BrutForce(int);
 	void Run();
 	void Write();
+	bool Load(std::string);
 	~FlowShop();
 };
 

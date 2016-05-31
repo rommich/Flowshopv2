@@ -171,6 +171,9 @@ void FlowShop::BrutForce(int v)
 
 void FlowShop::Run(char** argv)
 {
+	dT = 1000;
+	dMinT = 1;
+	dAlpha = 0.999;
 	Load(std::string(argv[1]));
 	std::ofstream plik;
 	plik.open(argv[2]);
@@ -203,7 +206,7 @@ bool FlowShop::Load(std::string arg)
 	viJobs = new int*[iJobsNumber];
 	viMachines = new int*[iJobsNumber];
 	for (int i = 0; i < iJobsNumber; i++) {
-		viJobs[i] = new int[iJobsNumber];
+		viJobs[i] = new int[iMachineNumber];
 		viMachines[i] = new int[iMachineNumber];
 	}
 

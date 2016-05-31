@@ -171,26 +171,19 @@ void FlowShop::BrutForce(int v)
 
 void FlowShop::Run(char** argv)
 {
+	
 	Load(std::string(argv[1]));
-	SimulatedAnnealing();
-	for (int i = 1; i < 10; i++) {
-		delete iCurrentResult;
-		delete iBestResult;
-		iCurrentResult = new int[iJobsNumber];
-		iBestResult = new int[iJobsNumber];
-		iBestExecutionTime = INT_MAX;
-		StartCounter();
-		SimulatedAnnealing();
-		dTime = GetCounter();
-		Write(std::to_string(i));
-	}
-}
-
-void FlowShop::Write(std::string arg)
-{
 	std::ofstream plik;
-	plik.open(arg);
-	plik << dTime;
+	plik.open("wyniki.txt");
+	if (!plik.good())
+		std::cerr << "error"; //Nie udało się otworzyć pliku
+
+	for (int i = 0; i < 11; i++) {
+		InitBrutForce();
+		StartCounter();
+		BrutForce(-1);
+		plik << GetCounter();
+	}
 	plik.close();
 }
 
@@ -206,7 +199,7 @@ bool FlowShop::Load(std::string arg)
 	viJobs = new int*[iJobsNumber];
 	viMachines = new int*[iJobsNumber];
 	for (int i = 0; i < iJobsNumber; i++) {
-		viJobs[i] = new int[iJobsNumber];
+		viJobs[i] = new int[iMachineNumber];
 		viMachines[i] = new int[iMachineNumber];
 	}
 

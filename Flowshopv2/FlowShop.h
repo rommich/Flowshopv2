@@ -34,7 +34,7 @@ public:
 	void InitBrutForce();
 	void BrutForce(int);
 	void Run(char**);
-	void Write(std::string arg);
+	//void Write(std::string arg);
 	bool Load(std::string);
 	~FlowShop();
 };

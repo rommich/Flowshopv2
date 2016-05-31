@@ -172,8 +172,10 @@ void FlowShop::BrutForce(int v)
 void FlowShop::Run(char** argv)
 {
 	Load(std::string(argv[1]));
+	std::ofstream plik;
+	plik.open("wyniki.txt");
 	SimulatedAnnealing();
-	for (int i = 1; i < 10; i++) {
+	for (int i = 0; i < 10; i++) {
 		delete iCurrentResult;
 		delete iBestResult;
 		iCurrentResult = new int[iJobsNumber];
@@ -181,17 +183,14 @@ void FlowShop::Run(char** argv)
 		iBestExecutionTime = INT_MAX;
 		StartCounter();
 		SimulatedAnnealing();
-		dTime = GetCounter();
-		Write(std::to_string(i));
+		plik <<  GetCounter() << std::endl;
 	}
+	plik.close();
 }
 
 void FlowShop::Write(std::string arg)
 {
-	std::ofstream plik;
-	plik.open(arg);
-	plik << dTime;
-	plik.close();
+	//plik << dTime;
 }
 
 bool FlowShop::Load(std::string arg)

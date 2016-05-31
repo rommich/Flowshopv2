@@ -173,18 +173,16 @@ void FlowShop::Run(char** argv)
 {
 	Load(std::string(argv[1]));
 	std::ofstream plik;
-	plik.open("wyniki.txt");
+	plik.open(argv[2]);
 	SimulatedAnnealing();
-	for (int i = 0; i < 10; i++) {
-		delete iCurrentResult;
-		delete iBestResult;
-		iCurrentResult = new int[iJobsNumber];
-		iBestResult = new int[iJobsNumber];
-		iBestExecutionTime = INT_MAX;
-		StartCounter();
-		SimulatedAnnealing();
-		plik <<  GetCounter() << std::endl;
-	}
+	delete iCurrentResult;
+	delete iBestResult;
+	iCurrentResult = new int[iJobsNumber];
+	iBestResult = new int[iJobsNumber];
+	iBestExecutionTime = INT_MAX;
+	StartCounter();
+	SimulatedAnnealing();
+	plik <<  GetCounter() << std::endl;
 	plik.close();
 }
 

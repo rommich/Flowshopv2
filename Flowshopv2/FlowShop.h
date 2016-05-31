@@ -13,19 +13,19 @@ private:
 	double dMinT;
 	double dAlpha;
 	double dP0;
-
+	bool bInitialized;
 	int iBestExecutionTime;
 	int iMachineNumber;
 	int iJobsNumber;
-
+	double dTime;
+	double PCFreq;
+	__int64 CounterStart;
 	bool* visited;
 	int iCountVisited;
-
 public:
+	void StartCounter();
+	double GetCounter();
 	FlowShop();
-	void Menu();
-	void Initialize();
-	void getRandom();
 	int GetExecutionTime();
 	void CalculateMachines();
 	void PromoteResult(int*);
@@ -33,8 +33,8 @@ public:
 	int SimulatedAnnealing();
 	void InitBrutForce();
 	void BrutForce(int);
-	void Run();
-	void Write();
+	void Run(char**);
+	void Write(std::string arg);
 	bool Load(std::string);
 	~FlowShop();
 };

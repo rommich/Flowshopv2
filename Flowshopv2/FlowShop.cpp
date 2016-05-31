@@ -7,105 +7,35 @@
 #include <fstream>
 #include <iostream>
 #define E (exp(1))
+
+
+
+
+void FlowShop::StartCounter()
+{
+	LARGE_INTEGER li;
+	if (!QueryPerformanceFrequency(&li))
+		std::cerr << "QueryPerformanceFrequency failed!\n";
+
+	PCFreq = double(li.QuadPart) / 1000.0;
+
+	QueryPerformanceCounter(&li);
+	CounterStart = li.QuadPart;
+}
+double FlowShop::GetCounter()
+{
+	LARGE_INTEGER li;
+	QueryPerformanceCounter(&li);
+	return double(li.QuadPart - CounterStart) / PCFreq;
+}
+
 FlowShop::FlowShop()
 {
+	PCFreq = 0.0;
+	CounterStart = 0;
+	bInitialized = false;
 }
 
-void FlowShop::Menu()
-{
-	int chose;
-	std::cout << ">>> FLOW SHOP <<< \n\n" << "1.Podaj dane recznie \n" << "2.Wylosuj dane \n" << "3.Wykonaj na podstawie danych z pliku \n" << "0.Wyjscie \n";
-	std::cin >> chose;
-	switch (chose)
-	{
-	case 1:
-		system("cls");
-		Initialize();
-		Run();
-		break;
-	case 2:
-		system("cls");
-		getRandom();
-		Run();
-		break;
-	case 3:
-		system("cls");
-		if(Load("test.txt"))
-			Run();
-		break;
-	case 0:
-		exit(0);
-	default:
-		system("cls");
-		Menu();
-		break;
-	}
-}
-
-void FlowShop::Initialize()
-{
-	std::cout << "Wprowadz liczbe maszyn:" << std::endl;
-	std::cin >> iMachineNumber;
-	std::cout  << "Wprowadz liczbe zadan:" << std::endl;
-	std::cin >> iJobsNumber;
-
-	viJobs = new int*[iJobsNumber];
-	viMachines = new int*[iJobsNumber];
-	for (int i = 0; i < iJobsNumber; i++) {
-		viJobs[i] = new int[iMachineNumber];
-		viMachines[i] = new int[iMachineNumber];
-	}
-
-	for (int i = 0; i < iJobsNumber; i++) {
-		std::cout << "Wprowadz czasy dla zadania: " << i << " dla maszyny:"  << std::endl;
-	
-		for (int j = 0; j < iMachineNumber; j++) {
-			std::cout << j << ": ";
-			std::cin >> viJobs[i][j];
-		}
-	}
-	std::cout << "Wprowadz temperature poczatkowa:" << std::endl;
-	std::cin >> dT;
-	std::cout << "Wprowadz temperature minimalna:" << std::endl;
-	std::cin >> dMinT;
-	std::cout << "Wprowadz wspolczynnik schladzania:" << std::endl;
-	std::cin >> dAlpha;
-
-	iCurrentResult = new int[iJobsNumber];
-	iBestResult = new int[iJobsNumber];
-	iBestExecutionTime = INT_MAX;	
-}
-
-void FlowShop::getRandom()
-{
-	srand(time(NULL));
-	std::cout << "Wprowadz liczbe maszyn:" << std::endl;
-	std::cin >> iMachineNumber;
-	std::cout << "Wprowadz liczbe zadan:" << std::endl;
-	std::cin >> iJobsNumber;
-
-	viJobs = new int*[iJobsNumber];
-	viMachines = new int*[iJobsNumber];
-	for (int i = 0; i < iJobsNumber; i++) {
-		viJobs[i] = new int[iMachineNumber];
-		viMachines[i] = new int[iMachineNumber];
-	}
-	//losowanie
-	for (int i = 0; i < iJobsNumber; i++) 
-		for (int j = 0; j < iMachineNumber; j++) {
-			viJobs[i][j] = rand() %20 +1;
-		}
-	std::cout << "Wprowadz temperature poczatkowa:" << std::endl;
-	std::cin >> dT;
-	std::cout << "Wprowadz temperature minimalna:" << std::endl;
-	std::cin >> dMinT;
-	std::cout << "Wprowadz wspolczynnik schladzania:" << std::endl;
-	std::cin >> dAlpha;
-
-	iCurrentResult = new int[iJobsNumber];
-	iBestResult = new int[iJobsNumber];
-	iBestExecutionTime = INT_MAX;
-}
 
 int FlowShop::GetExecutionTime()
 {
@@ -149,6 +79,7 @@ void FlowShop::SetBestToCurrent(int *iBest)
 int FlowShop::SimulatedAnnealing()
 {
 	srand(time(NULL));
+
 	bool *used = new bool[iJobsNumber];
 	int iTmp;
 	int iRand1, iRand2;
@@ -191,6 +122,7 @@ int FlowShop::SimulatedAnnealing()
 	}
 	SetBestToCurrent(iBestResult);
 	CalculateMachines();
+	delete used;
 	return 0;
 }
 
@@ -237,51 +169,29 @@ void FlowShop::BrutForce(int v)
 	}
 }
 
-void FlowShop::Run()
+void FlowShop::Run(char** argv)
 {
+	Load(std::string(argv[1]));
 	SimulatedAnnealing();
-	Write();
-	InitBrutForce();
-	Write();
+	for (int i = 1; i < 10; i++) {
+		delete iCurrentResult;
+		delete iBestResult;
+		iCurrentResult = new int[iJobsNumber];
+		iBestResult = new int[iJobsNumber];
+		iBestExecutionTime = INT_MAX;
+		StartCounter();
+		SimulatedAnnealing();
+		dTime = GetCounter();
+		Write(std::to_string(i));
+	}
 }
 
-void FlowShop::Write()
+void FlowShop::Write(std::string arg)
 {
-	std::cout << std::endl << "Czas wykonania zadan: " << iBestExecutionTime << std::endl << "kolejnosc: " << std::endl;
-	for (int i = 0; i < iJobsNumber; i++)
-		std::cout << iBestResult[i] << " ";
-	std::cout << std::endl << std::endl;
-
-	for (int i = 0; i < iMachineNumber; i++) {
-		std::cout << "m" << i << ") ";
-		for (int j = 0; j < iJobsNumber; j++) {
-
-			if (i == 0)		//maszyna 0
-				for (int k = 0; k < viJobs[iBestResult[j]][i]; k++)
-					std::cout << iBestResult[j];
-			else			//maszyna != 0
-				if (j == 0) {		//zadanie 0
-					for (int k = 0; k < viMachines[iBestResult[j]][i-1]; k++)
-						std::cout << "-";
-					for (int k = 0; k < viJobs[iBestResult[j]][i]; k++)
-						std::cout << iBestResult[j];
-				}
-				else		//zadanie != 0
-					if (viMachines[iBestResult[j - 1]][i] > viMachines[iBestResult[j]][i - 1])
-						for (int k = 0; k < viJobs[iBestResult[j]][i]; k++)
-							std::cout << iBestResult[j];
-					else {
-						for (int k = 0; k < (viMachines[iBestResult[j]][i - 1] - viMachines[iBestResult[j - 1]][i]); k++)
-							std::cout << "-";
-						for (int k = 0; k < viJobs[iBestResult[j]][i]; k++)
-							std::cout << iBestResult[j];
-					}
-
-		}
-		std::cout << std::endl;
-	}
-
-	system("pause");
+	std::ofstream plik;
+	plik.open(arg);
+	plik << dTime;
+	plik.close();
 }
 
 bool FlowShop::Load(std::string arg)
@@ -291,30 +201,25 @@ bool FlowShop::Load(std::string arg)
 	if (!plik.good())
 		return false; //Nie udało się otworzyć pliku
 	plik >> iMachineNumber;
-	std::cerr << iMachineNumber << std::endl;
 	plik >> iJobsNumber;
-	std::cerr << iJobsNumber;
 
 	viJobs = new int*[iJobsNumber];
 	viMachines = new int*[iJobsNumber];
 	for (int i = 0; i < iJobsNumber; i++) {
-		viJobs[i] = new int[iMachineNumber];
+		viJobs[i] = new int[iJobsNumber];
 		viMachines[i] = new int[iMachineNumber];
 	}
 
-	for (int i = 0; i < iJobsNumber; i++) {
-		std::cerr << std::endl << i << std::endl;
-		for (int j = 0; j < iMachineNumber; j++) {
+	for (int i = 0; i < iJobsNumber; i++) 
+		for (int j = 0; j < iMachineNumber; j++) 
 			plik >> viJobs[i][j];
-			std::cerr << viJobs[i][j] << " ";
-		}
-	}
+		
+	
 	plik.close();
 	iCurrentResult = new int[iJobsNumber];
 	iBestResult = new int[iJobsNumber];
 	iBestExecutionTime = INT_MAX;
-	std::cerr << std::endl;
-	system("pause");
+	bInitialized = true;
 	return true;
 }
 
